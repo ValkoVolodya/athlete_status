@@ -68,6 +68,8 @@ async def checkin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def choose_action_from_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
+    if user.id not in USER_TO_CURRENT_QUESTION_MAP.keys():
+        await update.message.reply_html(rf"Спочатку запусти опитування через /checkin 👇")
     USER_TO_CURRENT_QUESTION_MAP[user.id] += 1
     if update.message.text == YES_REPLY:
         USER_TO_CURRENT_RESULTS_MAP[user.id] += 1

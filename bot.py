@@ -1,4 +1,5 @@
 import os
+import logging
 
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -8,6 +9,9 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+from db import on_shutdown, on_startup
+
 
 YES_REPLY = "Так"
 NO_REPLY = "Ні"
@@ -89,7 +93,7 @@ async def choose_action_from_button(update: Update, context: ContextTypes.DEFAUL
 
 
 def main() -> None:
-    print("App started")
+    logging.info("App started")
     application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
 
     application.add_handler(CommandHandler("start", start))
@@ -99,6 +103,9 @@ def main() -> None:
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, choose_action_from_button)
     )
+
+    application.post_init = on_startup
+    application.post_shutdown = on_shutdown
 
     if os.getenv("DEPLOY"):
         application.run_webhook(

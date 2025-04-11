@@ -7,7 +7,7 @@ from telegram.ext import Application
 
 async def on_startup(app: Application) -> None:
     logging.info("Connecting to the DB...")
-    app.bot_data["db"] = await asyncpg.connect(f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@db/{os.getenv("POSTGRES_DB")}')
+    app.bot_data["db"] = await asyncpg.connect(os.getenv('POSTGRES_URI'))
     logging.info("Connected to DB ✅")
 
 async def on_shutdown(app: Application) -> None:

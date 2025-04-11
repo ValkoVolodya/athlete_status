@@ -14,5 +14,8 @@ services:
     env_file:
       - .env
     image: postgres:15-alpine
+    ports:
+      - 5430:5432
     volumes:
       - /private/var/lib/postgresql:/var/lib/postgresql
+      - ./migrations:/docker-entrypoint-initdb.d

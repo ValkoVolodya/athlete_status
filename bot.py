@@ -10,6 +10,7 @@ from telegram.ext import (
     filters,
 )
 
+from db.access import create_checkin, get_or_create_user
 from db.db import on_shutdown, on_startup
 
 
@@ -34,7 +35,7 @@ QUESTIONS_LIST = [
 ]
 
 
-def get_reccomendation_text_by_score(score: int) -> str:
+def get_recomendation_text_by_score(score: int) -> str:
     if score <= 3:
         return "Краще зроби день відпочинку або легке катання в Z1-Z2 🧘"
     if score <= 5:
@@ -45,6 +46,7 @@ def get_reccomendation_text_by_score(score: int) -> str:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
+    await get_or_create_user(context.bot_data['pool'], telegram_id=user.id)
     await update.message.reply_html(
         rf"Привіт, {user.mention_html()}! "
         rf"Я створений для зручної щоденної перевірки "
@@ -60,7 +62,7 @@ async def checkin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     context.user_data['result'] = 0
     context.user_data['question_id'] = 0
     await update.message.reply_html(
-        rf"Починаємо опитування:\n"
+        rf"Починаємо опитування: "
         rf"{QUESTIONS_LIST[0]}",
         reply_markup=ReplyKeyboardMarkup(DEFAULT_REPLY_BUTTONS),
     )
@@ -72,15 +74,21 @@ async def choose_action_from_button(update: Update, context: ContextTypes.DEFAUL
     if update.message.text == YES_REPLY:
         context.user_data['result'] = result + 1
     if context.user_data['question_id'] >= len(QUESTIONS_LIST):
+        await create_checkin(
+            context.bot_data['pool'],
+            telegram_id=update.effective_user.id,
+            total_score=context.user_data["result"],
+            recommendation=get_recomendation_text_by_score(context.user_data['result']),
+        )
         await update.message.reply_html(
             rf"Твій результат: "
             rf"{context.user_data['result']} балів "
-            rf"{get_reccomendation_text_by_score(context.user_data['result'])}"
+            rf"{get_recomendation_text_by_score(context.user_data['result'])}"
         )
         context.user_data.clear()
     else:
         await update.message.reply_html(
-            rf"{QUESTIONS_LIST[question_id]}"
+            rf"{QUESTIONS_LIST[context.user_data['question_id']]}"
         )
 
 

@@ -10,7 +10,7 @@ from telegram.ext import (
     filters,
 )
 
-from db import on_shutdown, on_startup
+from db.db import on_shutdown, on_startup
 
 
 YES_REPLY = "Так"
@@ -77,11 +77,10 @@ async def choose_action_from_button(update: Update, context: ContextTypes.DEFAUL
             rf"{context.user_data['result']} балів "
             rf"{get_reccomendation_text_by_score(context.user_data['result'])}"
         )
-        context.user_data['question_id'] = 0
-        context.user_data['result'] = 0
+        context.user_data.clear()
     else:
         await update.message.reply_html(
-            rf"{QUESTIONS_LIST[context.user_data['question_id']]}"
+            rf"{QUESTIONS_LIST[question_id]}"
         )
 
 

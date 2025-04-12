@@ -2,8 +2,7 @@
 -- depends: 
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    telegram_id BIGINT UNIQUE NOT NULL,
+    telegram_id BIGINT PRIMARY KEY,
     sport_type TEXT,
     checkin_time TIME,
     created_at TIMESTAMP DEFAULT now()
@@ -27,8 +26,7 @@ INSERT INTO questions (text) VALUES
 
 CREATE TABLE checkins (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    date DATE NOT NULL,
+    telegram_id INTEGER REFERENCES users(telegram_id) ON DELETE CASCADE,
     total_score INTEGER,
     recommendation TEXT,
     created_at TIMESTAMP DEFAULT now()

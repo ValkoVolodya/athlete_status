@@ -5,14 +5,15 @@ CREATE TABLE users (
     telegram_id BIGINT PRIMARY KEY,
     sport_type TEXT,
     checkin_time TIME,
-    created_at TIMESTAMP DEFAULT now()
+    created_at TIMESTAMP DEFAULT now(),
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE questions (
     id SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     weight INTEGER DEFAULT 1,
-    active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 INSERT INTO questions (text) VALUES

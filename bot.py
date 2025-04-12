@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import logging
 
@@ -10,7 +11,7 @@ from telegram.ext import (
     filters,
 )
 
-from db.access import create_checkin, get_or_create_user
+from db.access import create_checkin, get_checkins, get_or_create_user
 from db.db import on_shutdown, on_startup
 
 
@@ -22,6 +23,16 @@ DEFAULT_REPLY_BUTTONS = [
     [YES_REPLY],
     [NO_REPLY],
     [DONT_KNOW_REPLY],
+]
+
+ANSWER_BUTTONS = [YES_REPLY, NO_REPLY, DONT_KNOW_REPLY]
+
+CHECKIN_TIMES = [
+    ["6:00"], ["6:30"],
+    ["7:00"], ["7:30"],
+    ["8:00"], ["8:30"],
+    ["9:00"], ["9:30"],
+    ["10:00"], ["10:30"],
 ]
 
 QUESTIONS_LIST = [
@@ -50,12 +61,32 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_html(
         rf"Привіт, {user.mention_html()}! "
         rf"Я створений для зручної щоденної перевірки "
-        "твого стану готовності до тренування.",
+        rf"твого стану готовності до тренування. "
+        rf"О котрій годині тобі зручно отримувати щоденний чек-ін?",
+        reply_markup=ReplyKeyboardMarkup(CHECKIN_TIMES, one_time_keyboard=True),
     )
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Help!")
+
+
+async def choose_checkin_time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    time_str = update.message.text.strip()
+
+    try:
+        async with context.application.bot_data["pool"].acquire() as conn:
+            await conn.execute(
+                "UPDATE users SET checkin_time = $1 WHERE telegram_id = $2",
+                datetime.strptime(time_str, "%H:%M"),
+                update.effective_user.id,
+            )
+        await update.message.reply_text(rf"Чек-ін буде надсилатись щодня о {time_str} 🕒")
+    except ValueError:
+        await update.message.reply_text(
+            "Неправильний формат часу. Будь ласка, обери зі списку",
+            reply_markup=ReplyKeyboardMarkup(CHECKIN_TIMES, one_time_keyboard=True),
+        )
 
 
 async def checkin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -91,6 +122,18 @@ async def choose_action_from_button(update: Update, context: ContextTypes.DEFAUL
             rf"{QUESTIONS_LIST[context.user_data['question_id']]}"
         )
 
+async def results_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    checkins = await get_checkins(context.bot_data['pool'], update.effective_user.id)
+    print(checkins)
+    res_text = ""
+    for check in checkins:
+        print(check)
+        res_text += str(check.get('total_score')) + " | "
+        res_text += check.get('recommendation') + " | "
+        res_text += str(check.get('created_at').date()) + " | "
+    await update.message.reply_html(
+        rf"{res_text}"
+    )
 
 
 def main() -> None:
@@ -100,9 +143,13 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("checkin", checkin_command))
+    application.add_handler(CommandHandler("results", results_command))
 
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, choose_action_from_button)
+        MessageHandler(filters.Text(ANSWER_BUTTONS), choose_action_from_button)
+    )
+    application.add_handler(
+        MessageHandler(filters.Regex(r"^\d{1,2}:\d{2}$"), choose_checkin_time)
     )
 
     application.post_init = on_startup

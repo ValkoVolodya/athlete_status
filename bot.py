@@ -23,10 +23,6 @@ DEFAULT_REPLY_BUTTONS = [
     [DONT_KNOW_REPLY],
 ]
 
-USER_TO_CURRENT_QUESTION_MAP = {}
-
-USER_TO_CURRENT_RESULTS_MAP = {}
-
 QUESTIONS_LIST = [
     "✅ Чи добре я відновився після попереднього тренування?",
     "✅ Чи мій ранковий пульс у нормі (±5 уд/хв від звичного)?",
@@ -61,9 +57,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def checkin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    USER_TO_CURRENT_RESULTS_MAP[user.id] = 0
-    USER_TO_CURRENT_QUESTION_MAP[user.id] = 0
+    context.user_data['result'] = 0
+    context.user_data['question_id'] = 0
     await update.message.reply_html(
         rf"Починаємо опитування:\n"
         rf"{QUESTIONS_LIST[0]}",
@@ -71,23 +66,22 @@ async def checkin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
 
 async def choose_action_from_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    if user.id not in USER_TO_CURRENT_QUESTION_MAP.keys():
-        await update.message.reply_html(rf"Спочатку запусти опитування через /checkin 👇")
-    USER_TO_CURRENT_QUESTION_MAP[user.id] += 1
+    question_id = context.user_data.get('question_id', 0)
+    context.user_data['question_id'] = question_id + 1
+    result = context.user_data.get('result', 0)
     if update.message.text == YES_REPLY:
-        USER_TO_CURRENT_RESULTS_MAP[user.id] += 1
-    if USER_TO_CURRENT_QUESTION_MAP[user.id] >= len(QUESTIONS_LIST):
+        context.user_data['result'] = result + 1
+    if context.user_data['question_id'] >= len(QUESTIONS_LIST):
         await update.message.reply_html(
             rf"Твій результат: "
-            rf"{USER_TO_CURRENT_RESULTS_MAP[user.id]} балів "
-            rf"{get_reccomendation_text_by_score(USER_TO_CURRENT_RESULTS_MAP[user.id])}"
+            rf"{context.user_data['result']} балів "
+            rf"{get_reccomendation_text_by_score(context.user_data['result'])}"
         )
-        USER_TO_CURRENT_QUESTION_MAP[user.id] = 0
-        USER_TO_CURRENT_RESULTS_MAP[user.id] = 0
+        context.user_data['question_id'] = 0
+        context.user_data['result'] = 0
     else:
         await update.message.reply_html(
-            rf"{QUESTIONS_LIST[USER_TO_CURRENT_QUESTION_MAP[user.id]]}"
+            rf"{QUESTIONS_LIST[context.user_data['question_id']]}"
         )
 
 

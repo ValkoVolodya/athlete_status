@@ -142,6 +142,10 @@ async def results_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
 
 
+async def not_today_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Ок, до зустрічі на наступному чекіні)")
+
+
 def main() -> None:
     logging.info("App started")
     application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
@@ -160,9 +164,9 @@ def main() -> None:
     application.add_handler(
         MessageHandler(filters.Text(START_CHECKIN_TEXT), checkin_command)
     )
-    # application.add_handler(
-    #     MessageHandler(filters.Text(SKIP_CHECKIN_TEXT), lambda())
-    # )
+    application.add_handler(
+        MessageHandler(filters.Text(SKIP_CHECKIN_TEXT), not_today_command)
+    )
 
     application.post_init = on_startup
     application.post_shutdown = on_shutdown

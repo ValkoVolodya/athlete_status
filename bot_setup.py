@@ -14,6 +14,7 @@ async def on_startup(app: Application) -> None:
     logging.info("Connected to DB ✅")
     logging.info("Starting scheduler...")
     app.bot_data["scheduler"] = scheduler
+    scheduler.start()
     logging.info("Scheduler started ✅")
 
 async def on_shutdown(app: Application) -> None:

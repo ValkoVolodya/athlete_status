@@ -27,6 +27,13 @@ from db.access import (
 from bot_setup import on_shutdown, on_startup
 from scheduler import add_checkin_job
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
 
 QUESTIONS_LIST = [
     "✅ Чи добре я відновився після попереднього тренування?",
@@ -167,7 +174,7 @@ def main() -> None:
             webhook_url=os.getenv("WEBHOOK_URL"),
         )
     else:
-        print("Run polling locally")
+        logger.info("Run polling locally")
         application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

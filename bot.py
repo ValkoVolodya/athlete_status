@@ -130,7 +130,6 @@ async def choose_action_from_button(update: Update, context: ContextTypes.DEFAUL
 
 async def results_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     checkins = await get_checkins(context.bot_data['pool'], update.effective_user.id)
-    print(checkins)
     res_text = ""
     for check in checkins:
         print(check)

@@ -15,3 +15,6 @@ async def get_or_create_user_conn(conn, telegram_id: int) -> Record:
         telegram_id
     )
     return await get_user_conn(conn, telegram_id)
+
+async def get_all_active_users_conn(conn) -> list[Record]:
+    return await conn.fetch("SELECT * FROM users WHERE is_active = TRUE")

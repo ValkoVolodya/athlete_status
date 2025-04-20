@@ -1,0 +1,26 @@
+
+YES_REPLY = "Так"
+NO_REPLY = "Ні"
+DONT_KNOW_REPLY = "Не знаю"
+
+DEFAULT_REPLY_BUTTONS = [
+    [YES_REPLY],
+    [NO_REPLY],
+    [DONT_KNOW_REPLY],
+]
+
+ANSWER_BUTTONS = [YES_REPLY, NO_REPLY, DONT_KNOW_REPLY]
+
+CHECKIN_TIMES = [
+    ["6:00"], ["6:30"],
+    ["7:00"], ["7:30"],
+    ["8:00"], ["8:30"],
+    ["9:00"], ["9:30"],
+    ["10:00"], ["10:30"],
+]
+
+START_CHECKIN_TEXT = "Почати"
+SKIP_CHECKIN_TEXT = "Іншим разом"
+
+REGULAR_CHECKIN_BUTTONS = [[START_CHECKIN_TEXT], [SKIP_CHECKIN_TEXT]]
+

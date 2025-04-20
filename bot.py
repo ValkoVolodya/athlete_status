@@ -11,29 +11,22 @@ from telegram.ext import (
     filters,
 )
 
-from db.access import create_checkin, get_checkins, get_or_create_user
-from db.db import on_shutdown, on_startup
+from const import (
+    ANSWER_BUTTONS,
+    CHECKIN_TIMES,
+    DEFAULT_REPLY_BUTTONS,
+    SKIP_CHECKIN_TEXT,
+    START_CHECKIN_TEXT,
+    YES_REPLY,
+)
+from db.access import (
+    create_checkin,
+    get_checkins,
+    get_or_create_user,
+)
+from bot_setup import on_shutdown, on_startup
+from scheduler import add_checkin_job
 
-
-YES_REPLY = "Так"
-NO_REPLY = "Ні"
-DONT_KNOW_REPLY = "Не знаю"
-
-DEFAULT_REPLY_BUTTONS = [
-    [YES_REPLY],
-    [NO_REPLY],
-    [DONT_KNOW_REPLY],
-]
-
-ANSWER_BUTTONS = [YES_REPLY, NO_REPLY, DONT_KNOW_REPLY]
-
-CHECKIN_TIMES = [
-    ["6:00"], ["6:30"],
-    ["7:00"], ["7:30"],
-    ["8:00"], ["8:30"],
-    ["9:00"], ["9:30"],
-    ["10:00"], ["10:30"],
-]
 
 QUESTIONS_LIST = [
     "✅ Чи добре я відновився після попереднього тренування?",
@@ -81,6 +74,12 @@ async def choose_checkin_time(update: Update, context: ContextTypes.DEFAULT_TYPE
                 datetime.strptime(time_str, "%H:%M"),
                 update.effective_user.id,
             )
+        await add_checkin_job(
+            context.bot,
+            context.application.bot_data['scheduler'],
+            update.effective_user.id,
+            time_str,
+        )
         await update.message.reply_text(rf"Чек-ін буде надсилатись щодня о {time_str} 🕒")
     except ValueError:
         await update.message.reply_text(
@@ -151,6 +150,12 @@ def main() -> None:
     application.add_handler(
         MessageHandler(filters.Regex(r"^\d{1,2}:\d{2}$"), choose_checkin_time)
     )
+    application.add_handler(
+        MessageHandler(filters.Text(START_CHECKIN_TEXT), checkin_command)
+    )
+    # application.add_handler(
+    #     MessageHandler(filters.Text(SKIP_CHECKIN_TEXT), lambda())
+    # )
 
     application.post_init = on_startup
     application.post_shutdown = on_shutdown

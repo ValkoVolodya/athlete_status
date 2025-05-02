@@ -17,7 +17,7 @@ async def on_startup(app: Application) -> None:
     app.bot_data["scheduler"] = scheduler
     scheduler.start()
     logging.info("[BOT_SETUP] Scheduler started ✅")
-    await reschedule_job_after_restart()
+    await reschedule_job_after_restart(app.bot_data["pool"], app.bot, scheduler)
 
 
 async def on_shutdown(app: Application) -> None:

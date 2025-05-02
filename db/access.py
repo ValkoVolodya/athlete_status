@@ -21,5 +21,5 @@ async def get_checkins(pool, telegram_id: int) -> list[Record]:
         return await get_checkins_conn(conn, telegram_id=telegram_id)
 
 async def get_all_active_users(pool) -> list[Record]:
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn: 
         return await get_all_active_users_conn(conn)

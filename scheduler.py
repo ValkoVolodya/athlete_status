@@ -41,7 +41,12 @@ async def send_checkin_message(bot, user_id: int) -> None:
         logger.error(f"[SCHEDULER] ⚠️ Failed to send message {user_id}: {e}")
 
 async def reschedule_job_after_restart(pool, bot, scheduler) -> None:
-    users = await get_all_active_users()
+    users = await get_all_active_users(pool)
     for user in users:
-        await add_checkin_job(bot, scheduler, user_id=user.telegram_id, time_str=user.checkin_time)
+        await add_checkin_job(
+            bot,
+            scheduler,
+            user_id=user.get("telegram_id"),
+            time_str=user.get("checkin_time"),
+        )
     logging.info("[SCHEDULER] Rescheduling existing jobs complete.")
